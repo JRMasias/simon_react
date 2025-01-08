@@ -1,17 +1,20 @@
 'use client';
 import { Button } from "@/components/ui/button";
+import clsx from "clsx";
+import { useState } from "react";
 
 export default function Home() {
+  const [playing, setPlaying] = useState<boolean>(false);
+  const [rounds, setRounds] = useState<number>(0);
   const colors: string[] = ["green", "yellow", "red", "blue"];
   let answerArray: string[] = [];
-  let guessArray: string[] = ["guess1"];
-  let playing = false;
+  let guessArray: string[] = [];
 
   // Tone paths
-  const green: string = "/tones/tone.wav";
-  const blue: string = "/tones/tone2.wav";
-  const yellow: string = "/tones/tone3.wav";
-  const red: string = "/tones/tone4.wav";
+  const green: string = "/tones/tone1.mp3";
+  const blue: string = "/tones/tone2.mp3";
+  const yellow: string = "/tones/tone3.mp3";
+  const red: string = "/tones/tone4.mp3";
 
   // Function to play a tone
   const playTone = (tonePath: string) => {
@@ -59,8 +62,11 @@ export default function Home() {
 
   }; // end handleClick()
 
+  // Handler that starts the game (play button)
   const handlePlayButton = () => {
     let count: number = 400;
+    setRounds(rounds + 1);
+    setPlaying(true);
 
     // clear user guesses
     for (let index = 0; index < guessArray.length; index++) {
@@ -80,17 +86,38 @@ export default function Home() {
     });
   } // end handlePlayButton()
 
+  // Handler to quit current game
+  const handleExitButton = () => {
+    setRounds(0);
+
+    // clear user guesses
+    for (let index = 0; index < guessArray.length; index++) {
+      guessArray.pop();
+    }
+
+    // clear answers
+    for (let index = 0; index < answerArray.length; index++) {
+      answerArray.pop();
+    }
+
+    setPlaying(false);
+  }
+
   /*
       When play is clicked:
         RAND color is picked and added to an array. then for each color in array, tone is played and button lights up accordingly
         player clicks button(s) and upon each click, each button is added to an array that is checked against the computer array
         IF all guesses are correct, the player array is wiped clean and the loop begins again
         ELSE game over
+
+        if the answer is wrong, maybe have a pop up window that displays "game over" and the rounds completed, then the close button will trigger the exit button handler
   */
 
   // GUI
   return (
-    <main className="bg-neutral-950 h-screen flex flex-col gap-10 items-center justify-center">
+    <main className="bg-neutral-950 h-screen flex flex-col gap-5 items-center justify-center">
+      {!playing ? <p className="text-white text-2xl">Welcome to Simon</p> : <p className="text-white text-2xl">Good luck</p>}
+      {rounds > 0 ? <p className="text-blue-400">Rounds: {rounds}</p> : <p className="text-white">Click play below to begin</p>}
       <div className="w-[280px] h-[280px] border-8 border-black flex justify-center items-center p-4 bg-neutral-900">
         <div className="w-full h-full flex flex-wrap justify-between items-center relative">
           <p id='green' onClick={() => handleClick("green")} className="rounded-none rounded-tl-full w-1/2 h-1/2 bg-green-800 p-0 cursor-pointer"></p>
@@ -100,7 +127,10 @@ export default function Home() {
           <p className="rounded-full bg-white h-16 w-16 absolute top-[83px] left-[84px] p-0 text-black font-bold z-50 flex items-center justify-center hover:cursor-pointer">Simon</p>
         </div>
       </div>
-      <Button onClick={handlePlayButton} className="w-[280px] text-xl bg-primary">Play</Button>
+      <div className="w-[280px] mx-auto flex flex-nowrap justify-center items-center gap-4">
+        <Button onClick={!playing ? handlePlayButton : () => { console.log('currently in game') }} className={clsx(`w-full text-xl`, playing ? "text-neutral-400 !bg-secondary" : "bg-primary")}>Play</Button>
+        <Button onClick={!playing ? () => { console.log('not currently in a game') } : handleExitButton} className={clsx(`w-full text-xl`, playing ? "bg-primary" : " !bg-secondary text-neutral-400")}>Exit</Button>
+      </div>
     </main>
   );
 }
